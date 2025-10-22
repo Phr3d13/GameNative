@@ -507,7 +507,9 @@ public abstract class FileUtils {
                     for (File d : dirs) results.add(d.getName());
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e("FileUtils", "Failed to list Adreno drivers: " + e);
+        }
         return results;
     }
 
@@ -540,6 +542,7 @@ public abstract class FileUtils {
             boolean ok = extractZipFromInputStream(context, new ByteArrayInputStream(bytes), compDir);
             return ok ? identifier : null;
         } catch (Exception e) {
+            Log.e("FileUtils", "Failed to install Adreno driver from stream: " + e);
             return null;
         }
     }
@@ -552,6 +555,7 @@ public abstract class FileUtils {
             if (in == null) return null;
             return installAdrenoDriverFromInputStream(context, in);
         } catch (Exception e) {
+            Log.e("FileUtils", "Failed to install Adreno driver from uri: " + e);
             return null;
         }
     }

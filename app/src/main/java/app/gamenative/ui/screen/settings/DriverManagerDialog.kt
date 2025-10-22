@@ -115,23 +115,14 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 }
 
 private fun handlePickedUri(context: Context, uri: Uri): String {
-    try {
-        // First pass: read manifest identifier
-        val identifier = context.contentResolver.openInputStream(uri)?.use { input ->
-            FileUtils.readZipManifestNameFromInputStream(input)
-        } ?: return "Selected zip is invalid: no manifest JSON with name/libraryName found."
-
-        // Create destination dir
-        val compDir = File(context.filesDir, "installed_components/adrenotools_driver/$identifier")
-        if (compDir.exists()) FileUtils.delete(compDir)
-        if (!compDir.exists()) compDir.mkdirs()
-
-        // Second pass: extract zip contents
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            val ok = FileUtils.extractZipFromInputStream(context, input, compDir)
-            return if (ok) "Installed driver: $identifier" else "Failed to extract zip"
-        } ?: return "Failed to open file for extraction"
+    return try {
+        val identifier = FileUtils.installAdrenoDriverFromUri(context, uri)
+        if (identifier != null) {
+            "Installed driver: $identifier"
+        } else {
+            "Failed to install driver: invalid ZIP or missing manifest"
+        }
     } catch (e: Exception) {
-        return "Error importing driver: ${e.message}"
+        "Error importing driver: ${e.message}"
     }
 }
