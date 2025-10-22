@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.io.ByteArrayInputStream;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -489,5 +490,69 @@ public abstract class FileUtils {
         } catch (IOException ignored) {
         }
         return null;
+    }
+
+    // --- High-level helpers for installed adrenotools drivers -------------------------------------------------
+    public static File getAdrenoInstalledRoot(Context context) {
+        return new File(context.getFilesDir(), "installed_components/adrenotools_driver");
+    }
+
+    public static List<String> listInstalledAdrenoDrivers(Context context) {
+        ArrayList<String> results = new ArrayList<>();
+        File root = getAdrenoInstalledRoot(context);
+        try {
+            if (root.isDirectory()) {
+                File[] dirs = root.listFiles((f) -> f.isDirectory());
+                if (dirs != null) {
+                    for (File d : dirs) results.add(d.getName());
+                }
+            }
+        } catch (Exception ignored) {}
+        return results;
+    }
+
+    public static boolean deleteInstalledAdrenoDriver(Context context, String identifier) {
+        try {
+            File dir = new File(getAdrenoInstalledRoot(context), identifier);
+            if (dir.exists()) return delete(dir);
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Install an adrenotools driver from an InputStream. Returns the identifier (manifest name) on success, or null on failure.
+     */
+    public static String installAdrenoDriverFromInputStream(Context context, InputStream inStream) {
+        try {
+            byte[] bytes = StreamUtils.copyToByteArray(inStream);
+            if (bytes == null) return null;
+            // Read manifest name from a fresh stream
+            String identifier = readZipManifestNameFromInputStream(new ByteArrayInputStream(bytes));
+            if (identifier == null || identifier.isEmpty()) return null;
+
+            File root = getAdrenoInstalledRoot(context);
+            File compDir = new File(root, identifier);
+            if (compDir.exists()) delete(compDir);
+            if (!compDir.exists() && !compDir.mkdirs()) return null;
+
+            boolean ok = extractZipFromInputStream(context, new ByteArrayInputStream(bytes), compDir);
+            return ok ? identifier : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Convenience: install directly from a Uri (returns identifier on success, null on failure)
+     */
+    public static String installAdrenoDriverFromUri(Context context, android.net.Uri uri) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            if (in == null) return null;
+            return installAdrenoDriverFromInputStream(context, in);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

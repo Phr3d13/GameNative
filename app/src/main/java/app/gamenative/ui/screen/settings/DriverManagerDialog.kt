@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
 import app.gamenative.ui.theme.settingsTileColors
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
@@ -33,23 +34,25 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
     val ctx = LocalContext.current
     var lastMessage by remember { mutableStateOf<String?>(null) }
 
+    // Gather installed custom drivers via FileUtils helper and allow refreshing
+    val installedDrivers = remember { mutableStateListOf<String>() }
+    var driverToDelete by remember { mutableStateOf<String?>(null) }
+
+    val refreshDriverList: () -> Unit = {
+        installedDrivers.clear()
+        try {
+            val list = FileUtils.listInstalledAdrenoDrivers(ctx)
+            installedDrivers.addAll(list)
+        } catch (_: Exception) {}
+    }
+
+    LaunchedEffect(Unit) { refreshDriverList() }
+
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let {
             val res = handlePickedUri(ctx, it)
             lastMessage = res
-        }
-    }
-
-    // Gather installed custom drivers
-    val installedDrivers = remember {
-        mutableStateListOf<String>().apply {
-            try {
-                val root = File(ctx.filesDir, "installed_components/adrenotools_driver")
-                if (root.isDirectory) {
-                    val dirs = root.listFiles { f -> f.isDirectory } ?: arrayOf()
-                    for (d in dirs) add(d.name)
-                }
-            } catch (_: Exception) {}
+            if (res.startsWith("Installed driver:")) refreshDriverList()
         }
     }
 
@@ -66,22 +69,40 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     for (id in installedDrivers) {
                         Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
                             Text(text = id, modifier = Modifier.weight(1f))
-                            IconButton(onClick = {
-                                // delete directory
-                                try {
-                                    val compDir = File(ctx.filesDir, "installed_components/adrenotools_driver/$id")
-                                    if (compDir.exists()) FileUtils.delete(compDir)
-                                } catch (e: Exception) {
-                                    lastMessage = "Failed to remove $id: ${e.message}"
-                                }
-                                installedDrivers.remove(id)
-                            }) {
+                            IconButton(onClick = { driverToDelete = id }) {
                                 Icon(
                                     imageVector = Icons.Filled.Delete,
                                     contentDescription = "Delete",
                                 )
                             }
                         }
+                    }
+                    // Confirmation dialog for deletion
+                    driverToDelete?.let { id ->
+                        AlertDialog(
+                            onDismissRequest = { driverToDelete = null },
+                            title = { Text(text = "Confirm Delete") },
+                            text = { Text(text = "Are you sure you want to remove driver '$id'? This cannot be undone.") },
+                            confirmButton = {
+                                Button(onClick = {
+                                    try {
+                                        val ok = FileUtils.deleteInstalledAdrenoDriver(ctx, id)
+                                        if (ok) {
+                                            lastMessage = "Removed driver: $id"
+                                            refreshDriverList()
+                                        } else {
+                                            lastMessage = "Failed to remove $id"
+                                        }
+                                    } catch (e: Exception) {
+                                        lastMessage = "Error removing $id: ${e.message}"
+                                    }
+                                    driverToDelete = null
+                                }) { Text(text = "Delete") }
+                            },
+                            dismissButton = {
+                                Button(onClick = { driverToDelete = null }) { Text(text = "Cancel") }
+                            },
+                        )
                     }
                 }
             }
@@ -95,27 +116,22 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
 private fun handlePickedUri(context: Context, uri: Uri): String {
     try {
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            val manifestName = FileUtils.readZipManifestNameFromInputStream(input)
-            if (manifestName == null) return "Selected zip is invalid: no manifest JSON with name/libraryName found."
-        } ?: return "Failed to open selected file"
+        // First pass: read manifest identifier
+        val identifier = context.contentResolver.openInputStream(uri)?.use { input ->
+            FileUtils.readZipManifestNameFromInputStream(input)
+        } ?: return "Selected zip is invalid: no manifest JSON with name/libraryName found."
 
-        // Re-open to extract (streams were consumed)
+        // Create destination dir
+        val compDir = File(context.filesDir, "installed_components/adrenotools_driver/$identifier")
+        if (compDir.exists()) FileUtils.delete(compDir)
+        if (!compDir.exists()) compDir.mkdirs()
+
+        // Second pass: extract zip contents
         context.contentResolver.openInputStream(uri)?.use { input ->
-            val identifier = FileUtils.readZipManifestNameFromInputStream(input) ?: return "Invalid manifest"
-            // create destination dir
-            val compDir = File(context.filesDir, "/installed_components/adrenotools_driver/$identifier")
-            if (compDir.exists()) FileUtils.delete(compDir)
-            compDir.mkdirs()
-            // extract
-            context.contentResolver.openInputStream(uri)?.use { extractStream ->
-                val ok = FileUtils.extractZipFromInputStream(context, extractStream, compDir)
-                return if (ok) "Installed driver: $identifier" else "Failed to extract zip"
-            } ?: return "Failed to open file for extraction"
-        }
+            val ok = FileUtils.extractZipFromInputStream(context, input, compDir)
+            return if (ok) "Installed driver: $identifier" else "Failed to extract zip"
+        } ?: return "Failed to open file for extraction"
     } catch (e: Exception) {
         return "Error importing driver: ${e.message}"
     }
-    // Fallback return to satisfy Kotlin's requirement that all code paths return a String
-    return "Unknown result"
 }

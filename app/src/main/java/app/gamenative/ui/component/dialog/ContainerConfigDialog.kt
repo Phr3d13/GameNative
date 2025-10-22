@@ -98,19 +98,22 @@ fun ContainerConfigDialog(
             mutableStateOf(initialConfig)
         }
 
-        val screenSizes = stringArrayResource(R.array.screen_size_entries).toList()
-        var graphicsDrivers = stringArrayResource(R.array.graphics_driver_entries).toMutableList()
-        // Append installed custom adrenotools drivers found in app files
-        try {
-            val compRoot = File(context.filesDir, "installed_components/adrenotools_driver")
-            if (compRoot.isDirectory) {
-                val dirs = compRoot.listFiles { file -> file.isDirectory } ?: arrayOf()
-                for (d in dirs) {
-                    // show as a user-installed entry, identifier will be parsed by StringUtils.parseIdentifier when selected
-                    graphicsDrivers.add("${d.name} (Custom)")
+    val screenSizes = stringArrayResource(R.array.screen_size_entries).toList()
+    val baseGraphicsDrivers = stringArrayResource(R.array.graphics_driver_entries).toList()
+    var graphicsDrivers by remember { mutableStateOf(baseGraphicsDrivers.toMutableList()) }
+
+        // Perform filesystem discovery off the composition thread to avoid jank
+        LaunchedEffect(Unit) {
+            try {
+                val installed = com.winlator.core.FileUtils.listInstalledAdrenoDrivers(context)
+                if (installed.isNotEmpty()) {
+                    val customDrivers = installed.map { "${it} (Custom)" }
+                    graphicsDrivers = (baseGraphicsDrivers + customDrivers).toMutableList()
                 }
+            } catch (e: Exception) {
+                android.util.Log.w("ContainerConfigDialog", "Failed to discover custom drivers", e)
             }
-        } catch (_: Exception) {}
+        }
         val dxWrappers = stringArrayResource(R.array.dxwrapper_entries).toList()
         val dxvkVersionsAll = stringArrayResource(R.array.dxvk_version_entries).toList()
         val vkd3dVersions = stringArrayResource(R.array.vkd3d_version_entries).toList()
