@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import java.io.File
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -98,7 +99,18 @@ fun ContainerConfigDialog(
         }
 
         val screenSizes = stringArrayResource(R.array.screen_size_entries).toList()
-        val graphicsDrivers = stringArrayResource(R.array.graphics_driver_entries).toList()
+        var graphicsDrivers = stringArrayResource(R.array.graphics_driver_entries).toMutableList()
+        // Append installed custom adrenotools drivers found in app files
+        try {
+            val compRoot = File(context.filesDir, "installed_components/adrenotools_driver")
+            if (compRoot.isDirectory) {
+                val dirs = compRoot.listFiles { file -> file.isDirectory } ?: arrayOf()
+                for (d in dirs) {
+                    // show as a user-installed entry, identifier will be parsed by StringUtils.parseIdentifier when selected
+                    graphicsDrivers.add("${d.name} (Custom)")
+                }
+            }
+        } catch (_: Exception) {}
         val dxWrappers = stringArrayResource(R.array.dxwrapper_entries).toList()
         val dxvkVersionsAll = stringArrayResource(R.array.dxvk_version_entries).toList()
         val vkd3dVersions = stringArrayResource(R.array.vkd3d_version_entries).toList()
