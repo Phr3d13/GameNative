@@ -527,11 +527,27 @@ public abstract class FileUtils {
      * Install an adrenotools driver from an InputStream. Returns the identifier (manifest name) on success, or null on failure.
      */
     public static String installAdrenoDriverFromInputStream(Context context, InputStream inStream) {
+        File tempFile = null;
         try {
-            byte[] bytes = StreamUtils.copyToByteArray(inStream);
-            if (bytes == null) return null;
-            // Read manifest name from a fresh stream
-            String identifier = readZipManifestNameFromInputStream(new ByteArrayInputStream(bytes));
+            File cacheDir = context.getCacheDir();
+            if (cacheDir == null) cacheDir = context.getFilesDir();
+            tempFile = File.createTempFile("adreno_", ".zip", cacheDir);
+
+            // Stream incoming InputStream to temp file to avoid buffering whole file in memory
+            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[8192];
+                int len;
+                while ((len = inStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.flush();
+            }
+
+            // Read manifest name from temp file
+            String identifier;
+            try (FileInputStream fis = new FileInputStream(tempFile)) {
+                identifier = readZipManifestNameFromInputStream(fis);
+            }
             if (identifier == null || identifier.isEmpty()) return null;
 
             File root = getAdrenoInstalledRoot(context);
@@ -539,11 +555,19 @@ public abstract class FileUtils {
             if (compDir.exists()) delete(compDir);
             if (!compDir.exists() && !compDir.mkdirs()) return null;
 
-            boolean ok = extractZipFromInputStream(context, new ByteArrayInputStream(bytes), compDir);
+            // Extract from temp file
+            boolean ok;
+            try (FileInputStream fis2 = new FileInputStream(tempFile)) {
+                ok = extractZipFromInputStream(context, fis2, compDir);
+            }
             return ok ? identifier : null;
         } catch (Exception e) {
             Log.e("FileUtils", "Failed to install Adreno driver from stream: " + e);
             return null;
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                try { tempFile.delete(); } catch (Exception ignored) {}
+            }
         }
     }
 
