@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.io.ByteArrayInputStream;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -540,15 +539,27 @@ public abstract class FileUtils {
                 while ((len = inStream.read(buffer)) != -1) {
                     fos.write(buffer, 0, len);
                 }
-                fos.flush();
+                // No explicit fos.flush() needed; close() will flush
             }
 
-            // Read manifest name from temp file
+            // Read manifest name (identifier) from temp file
             String identifier;
             try (FileInputStream fis = new FileInputStream(tempFile)) {
                 identifier = readZipManifestNameFromInputStream(fis);
             }
             if (identifier == null || identifier.isEmpty()) return null;
+
+            // Validate and sanitize identifier to prevent path traversal
+            identifier = identifier.trim();
+            if (identifier.contains("..") || identifier.contains("/") || identifier.contains("\\")) {
+                Log.e("FileUtils", "installAdrenoDriverFromInputStream: invalid identifier (path traversal): " + identifier);
+                return null;
+            }
+            // Allow only letters, digits, hyphen and underscore
+            if (!identifier.matches("[A-Za-z0-9_-]+")) {
+                Log.e("FileUtils", "installAdrenoDriverFromInputStream: invalid identifier (characters not allowed): " + identifier);
+                return null;
+            }
 
             File root = getAdrenoInstalledRoot(context);
             File compDir = new File(root, identifier);
