@@ -27,7 +27,7 @@ import java.util.List;
 
 public class GuestProgramLauncherComponent extends EnvironmentComponent {
     private String guestExecutable;
-    private static int pid = -1;
+    private volatile int pid = -1; // Made instance-based and volatile for thread safety
     private String[] bindingPaths;
     private EnvVars envVars;
     private String box86Version = DefaultVersion.BOX86;
@@ -35,7 +35,7 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
     private String box86Preset = Box86_64Preset.COMPATIBILITY;
     private String box64Preset = Box86_64Preset.COMPATIBILITY;
     private Callback<Integer> terminationCallback;
-    private static final Object lock = new Object();
+    private final Object lock = new Object(); // Made instance-based
     private boolean wow64Mode = true;
     private File workingDir;
     private WineInfo wineInfo;
@@ -57,9 +57,14 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
     public void setPreUnpack(Runnable r) { this.preUnpack = r; }
     @Override
     public void start() {
-        // Log.d("GuestProgramLauncherComponent", "Starting...");
+        Log.d("GuestProgramLauncherComponent", "Starting base launcher component...");
         synchronized (lock) {
-            stop();
+            // Don't automatically call stop() - let caller decide
+            if (pid != -1) {
+                Log.w("GuestProgramLauncherComponent", "Process already running: " + pid);
+                return;
+            }
+            
             extractBox86_64Files();
             pid = execGuestProgram();
             Log.d("GuestProgramLauncherComponent", "Process " + pid + " started");
@@ -68,22 +73,44 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
 
     @Override
     public void stop() {
-        // Log.d("GuestProgramLauncherComponent", "Stopping...");
+        Log.d("GuestProgramLauncherComponent", "Stopping base launcher component...");
         synchronized (lock) {
             if (pid != -1) {
+                // Try graceful shutdown first
+                ProcessHelper.terminateProcess(pid);
+                
+                // Wait briefly for graceful shutdown
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                
+                // Force kill if still running
                 Process.killProcess(pid);
                 Log.d("GuestProgramLauncherComponent", "Stopped process " + pid);
+                
+                int stoppedPid = pid;
                 pid = -1;
-                List<ProcessHelper.ProcessInfo> subProcesses = ProcessHelper.listSubProcesses();
-                for (ProcessHelper.ProcessInfo subProcess : subProcesses) {
-                    Log.d("GuestProgramLauncherComponent",
-                            "Sub-process still running: "
-                                    + subProcess.name + " | "
-                                    + subProcess.pid + " | "
-                                    + subProcess.ppid + ", stopping..."
-                    );
-                    Process.killProcess(subProcess.pid);
-                }
+                
+                // Clean up only child processes, not all user processes
+                cleanupChildProcesses(stoppedPid);
+            }
+        }
+    }
+    
+    /**
+     * Clean up only child processes of the specified PID, not all user processes
+     */
+    private void cleanupChildProcesses(int parentPid) {
+        List<ProcessHelper.ProcessInfo> subProcesses = ProcessHelper.listSubProcesses();
+        for (ProcessHelper.ProcessInfo subProcess : subProcesses) {
+            // Only kill processes that are actually children of our process
+            if (subProcess.ppid == parentPid) {
+                Log.d("GuestProgramLauncherComponent",
+                        "Cleaning up child process: "
+                                + subProcess.name + " (PID: " + subProcess.pid + ")");
+                Process.killProcess(subProcess.pid);
             }
         }
     }
@@ -288,10 +315,9 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
 
         // ProcessHelper.exec(nativeLibraryDir+"/libproot.so ulimit -a", envVars.toStringArray(), rootDir);
         return ProcessHelper.exec(command, envVars.toStringArray(), workingDir != null ? workingDir : rootDir, (status) -> {
-            Log.d("GuestProgramLauncherComponent", "Process terminated " + pid + " with status " + status);
-            synchronized (lock) {
-                pid = -1;
-            }
+            Log.d("GuestProgramLauncherComponent", "Static exec process terminated with status " + status);
+            // Note: Static method cannot access instance variables (lock, pid)
+            // Process cleanup is handled by ProcessHelper and the caller
             if (terminationCallback != null) terminationCallback.call(status);
         });
     }

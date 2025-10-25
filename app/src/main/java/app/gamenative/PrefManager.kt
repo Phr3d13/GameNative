@@ -384,7 +384,7 @@ object PrefManager {
 
     private val BOX_64_VERSION = stringPreferencesKey("box64_version")
     var box64Version: String
-        get() = getPref(BOX_64_VERSION, DefaultVersion.BOX64)
+        get() = getPref(BOX_64_VERSION, DefaultVersion.getBox64Version(containerVariant))
         set(value) {
             setPref(BOX_64_VERSION, value)
         }

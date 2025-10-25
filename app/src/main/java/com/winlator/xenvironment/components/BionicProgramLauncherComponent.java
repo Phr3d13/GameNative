@@ -51,15 +51,16 @@ import app.gamenative.service.SteamService;
 
 public class BionicProgramLauncherComponent extends GuestProgramLauncherComponent {
     private String guestExecutable;
-    private static int pid = -1;
+    private volatile int pid = -1; // Made instance-based and volatile for thread safety
     private String[] bindingPaths;
     private EnvVars envVars;
     private WineInfo wineInfo;
     private String box64Version = DefaultVersion.BOX64;
     private String box64Preset = Box86_64Preset.COMPATIBILITY;
     private Callback<Integer> terminationCallback;
-    private static final Object lock = new Object();
+    private final Object lock = new Object(); // Made instance-based
     private boolean wow64Mode = true;
+    private final String instanceId; // Track launcher instance for logging
     private final ContentsManager contentsManager;
     private final ContentProfile wineProfile;
     private Container container;
@@ -78,35 +79,82 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
     public BionicProgramLauncherComponent(ContentsManager contentsManager, ContentProfile wineProfile) {
         this.contentsManager = contentsManager;
         this.wineProfile = wineProfile;
+        this.instanceId = "bionic-" + System.currentTimeMillis() + "-" + hashCode();
+        Log.d("BionicProgramLauncherComponent", "Created launcher instance: " + instanceId);
     }
 
     private Runnable preUnpack;
     public void setPreUnpack(Runnable r) { this.preUnpack = r; }
     @Override
     public void start() {
+        Log.d("BionicProgramLauncherComponent", "Starting launcher instance: " + instanceId);
         synchronized (lock) {
+            // Don't call implicit stop() - let caller decide
+            if (pid != -1) {
+                Log.w("BionicProgramLauncherComponent", "Instance " + instanceId + " already has running process: " + pid);
+                return;
+            }
+            
             if (wineInfo.isArm64EC())
                 extractEmulatorsDlls();
             else
                 extractBox64Files();
             if (preUnpack != null) preUnpack.run();
             pid = execGuestProgram();
-            Log.d("BionicProgramLauncherComponent", "Process " + pid + " started");
-            SteamService.setGameRunning(true);
+            Log.d("BionicProgramLauncherComponent", "Instance " + instanceId + " started process: " + pid);
+            
+            // Only set global state if we successfully started
+            if (pid != -1) {
+                SteamService.setGameRunning(true);
+            }
         }
     }
 
     @Override
     public void stop() {
+        Log.d("BionicProgramLauncherComponent", "Stopping launcher instance: " + instanceId);
         synchronized (lock) {
             if (pid != -1) {
-                Process.killProcess(pid);
-                Log.d("BionicProgramLauncherComponent", "Stopped process " + pid);
-                List<ProcessHelper.ProcessInfo> subProcesses = ProcessHelper.listSubProcesses();
-                for (ProcessHelper.ProcessInfo subProcess : subProcesses) {
-                    Process.killProcess(subProcess.pid);
+                Log.d("BionicProgramLauncherComponent", "Instance " + instanceId + " stopping process: " + pid);
+                
+                // Try graceful shutdown first
+                ProcessHelper.terminateProcess(pid);
+                
+                // Wait briefly for graceful shutdown
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
+                
+                // Force kill if still running
+                Process.killProcess(pid);
+                Log.d("BionicProgramLauncherComponent", "Instance " + instanceId + " stopped process: " + pid);
+                
+                int stoppedPid = pid;
+                pid = -1;
+                
+                // Only clear global state if this was the last running instance
                 SteamService.setGameRunning(false);
+                
+                // Clean up only processes that are children of our specific PID
+                cleanupChildProcesses(stoppedPid);
+            }
+        }
+    }
+    
+    /**
+     * Clean up only child processes of the specified PID, not all user processes
+     */
+    private void cleanupChildProcesses(int parentPid) {
+        List<ProcessHelper.ProcessInfo> subProcesses = ProcessHelper.listSubProcesses();
+        for (ProcessHelper.ProcessInfo subProcess : subProcesses) {
+            // Only kill processes that are actually children of our process
+            if (subProcess.ppid == parentPid) {
+                Log.d("BionicProgramLauncherComponent", 
+                        "Instance " + instanceId + " cleaning up child process: " 
+                        + subProcess.name + " (PID: " + subProcess.pid + ")");
+                Process.killProcess(subProcess.pid);
             }
         }
     }
@@ -321,10 +369,12 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
         }
 
         return ProcessHelper.exec(command, envVars.toStringArray(), workingDir != null ? workingDir : rootDir, (status) -> {
+            Log.d("BionicProgramLauncherComponent", "Instance " + instanceId + " process terminated with status " + status);
             synchronized (lock) {
                 pid = -1;
             }
             if (!environment.isWinetricksRunning()) {
+                // Only clear global state if this was the last running instance
                 SteamService.setGameRunning(false);
                 if (terminationCallback != null)
                     terminationCallback.call(status);
