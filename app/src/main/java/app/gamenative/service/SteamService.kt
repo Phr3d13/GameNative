@@ -365,7 +365,7 @@ class SteamService : Service(), IChallengeUrlChanged {
         val isLoginInProgress: Boolean
             get() = instance?._loginResult == LoginResult.InProgress
 
-        private const val MAX_PARALLEL_DEPOTS   = 2     // instead of all 38
+        private const val MAX_PARALLEL_DEPOTS   = 6     // instead of all 38
         private const val CHUNKS_PER_DEPOT      = 16
 
         // simple depot-level semaphore
@@ -784,7 +784,7 @@ class SteamService : Service(), IChallengeUrlChanged {
         /** copyTo with progress callback */
         private inline fun InputStream.copyTo(
             out: OutputStream,
-            bufferSize: Int = DEFAULT_BUFFER_SIZE,
+            bufferSize: Int = 256 * 1024,
             progress: (Long) -> Unit
         ) {
             val buf = ByteArray(bufferSize)

@@ -32,7 +32,14 @@ import java.net.URLEncoder
 
 object SteamUtils {
 
-    internal val http = OkHttpClient()
+    internal val http = OkHttpClient.Builder()
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .connectionPool(ConnectionPool(8, 5, java.util.concurrent.TimeUnit.MINUTES))
+        .dispatcher(Dispatcher().apply { maxRequests = 32; maxRequestsPerHost = 8 })
+        .retryOnConnectionFailure(true)
+        .build()
 
     private val sfd by lazy {
         SimpleDateFormat("MMM d - h:mm a", Locale.getDefault()).apply {
