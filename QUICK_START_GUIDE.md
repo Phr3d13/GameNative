@@ -51,15 +51,15 @@ GameNative will request the following permissions:
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114013_Samsung%20Internet.jpg" alt="Release Assets" width="400">
 
-*Available APK files in the release*
+*Viewing the release page with available downloads*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114025_Samsung%20Internet.jpg" alt="Download Dialog" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114025_Samsung%20Internet.jpg" alt="Release Assets List" width="400">
 
-*Browser security warning when downloading APK*
+*List of APK files available for download*
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Repository Page" width="400">
 
-*GameNative repository page on GitHub*
+*Browser showing repository information*
 
 ### Step 2: Enable Installation from Unknown Sources
 If this is your first time installing an APK manually:
