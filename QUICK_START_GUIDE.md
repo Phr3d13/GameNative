@@ -47,7 +47,19 @@ GameNative will request the following permissions:
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114001_Samsung%20Internet.jpg" alt="GitHub Releases Page" width="400">
 
-*The GameNative releases page on GitHub*
+*Scrolling through the GitHub releases page*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114013_Samsung%20Internet.jpg" alt="Release Assets" width="400">
+
+*Available APK files in the release*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114025_Samsung%20Internet.jpg" alt="Download Dialog" width="400">
+
+*Browser security warning before downloading*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Download Complete" width="400">
+
+*APK file ready to download from releases page*
 
 ### Step 2: Enable Installation from Unknown Sources
 If this is your first time installing an APK manually:
@@ -55,6 +67,10 @@ If this is your first time installing an APK manually:
 1. Go to **Settings** → **Security** (or **Privacy**)
 2. Enable **Install from Unknown Sources** or **Allow from this source** for your file manager/browser
 3. Alternatively, modern Android will prompt you when you try to install
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114146_Samsung%20Internet.jpg" alt="Download Notification" width="400">
+
+*APK download complete notification*
 
 ### Step 3: Install the APK
 1. Open your **Downloads** folder or notification
@@ -67,9 +83,21 @@ If this is your first time installing an APK manually:
 
 *Android asking permission to install the APK*
 
+<img src="Pictures%20for%20guide/Screenshot_20251102_114158_Package%20installer.jpg" alt="Install Confirmation" width="400">
+
+*Confirming installation of GameNative*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114207_Google%20Play%20Store.jpg" alt="Google Play Protect Warning 1" width="400">
+
+*Google Play Protect warning (tap "Install anyway")*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114213_Google%20Play%20Store.jpg" alt="Google Play Protect Warning 2" width="400">
+
+*Additional Play Protect warning with "Install anyway" option*
+
 <img src="Pictures%20for%20guide/Screenshot_20251102_114226_Package%20installer.jpg" alt="Installation Complete" width="400">
 
-*Installation in progress*
+*Installation complete - tap "Open" to launch*
 
 ---
 
@@ -155,11 +183,11 @@ If your account has Steam Guard:
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game Detail Page" width="400">
 
-*Game details showing install options and information*
+*Game detail page showing game information*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg" alt="Game Detail Page with Install Button" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg" alt="Game with Install Button" width="400">
 
-*Game information page with install button and game details*
+*"20 Minutes Till Dawn" ready to install*
 
 ### Step 3: Install the Game
 
@@ -175,10 +203,18 @@ On first installation:
 2. Grant **Storage Permission** when prompted
 3. This allows GameNative to create game folders
 
+<img src="Pictures%20for%20guide/Screenshot_20251102_114411_Permission%20controller.jpg" alt="Storage Permission Request" width="400">
+
+*Granting storage permission for game installation*
+
 #### Choose Installation Options
 1. Tap **Install**
 2. Review the storage requirements dialog
 3. Tap **Proceed** to confirm
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
+
+*Reviewing storage requirements before installation*
 
 #### Monitor Download Progress
 - Download progress appears on the game's detail page in the Library
@@ -187,9 +223,9 @@ On first installation:
   - Time remaining estimate
   - Current status (downloading, installing, etc.)
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg" alt="Download Progress" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114729_GameNative.jpg" alt="Game Installed" width="400">
 
-*Game downloading with progress indicator*
+*Game successfully installed and ready to play*
 
 > **Note:** Large games may take significant time. Downloads continue in the background, and you'll get a notification when complete.
 
@@ -298,13 +334,13 @@ Each game has individual settings accessible from its detail page:
    - Drives:** Manage virtual drives (C: drive is the game directory)
    - **Startup:** Processor affinity, startup programs
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_115226_GameNative.jpg" alt="Game Settings" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_115226_GameNative.jpg" alt="Game Options Menu" width="400">
 
-*Per-game configuration options*
+*Game settings menu with various options*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_115233_GameNative.jpg" alt="Advanced Settings" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_115233_GameNative.jpg" alt="Container Configuration" width="400">
 
-*Advanced emulation settings for performance tuning*
+*Per-game container configuration tabs*
 
 > **Tip:** Most games work well with default settings. Only adjust these if you encounter issues or want to optimize performance.
 
