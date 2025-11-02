@@ -55,11 +55,11 @@ GameNative will request the following permissions:
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114025_Samsung%20Internet.jpg" alt="Download Dialog" width="400">
 
-*Browser security warning before downloading*
+*Release assets with downloadable APK files*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Download Complete" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Repository Page" width="400">
 
-*APK file ready to download from releases page*
+*GameNative repository page on GitHub*
 
 ### Step 2: Enable Installation from Unknown Sources
 If this is your first time installing an APK manually:
@@ -115,10 +115,6 @@ When you first open GameNative, you'll see the login screen with the GameNative 
 - On Android 13+, you'll be prompted to allow notifications
 - When installing your first game, you'll be asked for storage permissions
 - **Grant these permissions** for the best experience
-
-<img src="Pictures%20for%20guide/Screenshot_20251102_114411_Permission%20controller.jpg" alt="Permission Request" width="400">
-
-*Android will prompt for necessary permissions*
 
 #### Choose Your Login Method
 
