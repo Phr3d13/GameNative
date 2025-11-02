@@ -184,7 +184,7 @@ If your account has Steam Guard:
 
 *Granting storage permission for game installation*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114416_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
 
 *Reviewing storage requirements before installation*
 
