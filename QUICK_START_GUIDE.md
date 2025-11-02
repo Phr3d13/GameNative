@@ -291,9 +291,9 @@ On first installation:
 ### Accessing Settings
 Tap the **Settings** icon (gear) in the top-right corner of the Library screen.
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_115220_GameNative.jpg" alt="Settings Menu" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_115220_GameNative.jpg" alt="Game Detail Options" width="400">
 
-*GameNative settings menu*
+*Game detail page with options menu (three-dot menu)*
 
 ### Settings Overview
 
@@ -334,13 +334,13 @@ Each game has individual settings accessible from its detail page:
    - Drives:** Manage virtual drives (C: drive is the game directory)
    - **Startup:** Processor affinity, startup programs
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_115226_GameNative.jpg" alt="Game Options Menu" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_115226_GameNative.jpg" alt="Container Config General Tab" width="400">
 
-*Game settings menu with various options*
+*Container configuration - General tab showing executable path and arguments*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_115233_GameNative.jpg" alt="Container Configuration" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_115233_GameNative.jpg" alt="Container Config Graphics Tab" width="400">
 
-*Per-game container configuration tabs*
+*Container configuration - Graphics tab with driver and Vulkan settings*
 
 > **Tip:** Most games work well with default settings. Only adjust these if you encounter issues or want to optimize performance.
 
