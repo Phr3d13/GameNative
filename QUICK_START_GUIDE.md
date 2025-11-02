@@ -174,45 +174,19 @@ If your account has Steam Guard:
 
 ### Step 3: Install the Game
 
-#### Check Storage Requirements
-Before installing, review:
-- **Download Size:** Amount of data to download
-- **Installed Size:** Space needed on your device
-- **Available Space:** How much free space you currently have
-
-#### Grant Storage Permission
-On first installation:
-1. Tap **Install**
-2. Grant **Storage Permission** when prompted
-3. This allows GameNative to create game folders
+1. Tap **Install** on the game's detail page
+2. Grant **Storage Permission** when prompted (first time only)
+3. Review the storage requirements dialog
+4. Tap **Proceed** to confirm
+5. Monitor download progress on the game's detail page
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114411_Permission%20controller.jpg" alt="Storage Permission Request" width="400">
 
 *Granting storage permission for game installation*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg" alt="Game Installed" width="400">
-
-*20 Minutes Till Dawn Installed*
-
-<img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game First Run" width="400">
-
-*Game First Run*
-
-#### Choose Installation Options
-1. Tap **Install**
-2. Review the storage requirements dialog
-3. Tap **Proceed** to confirm
-
-<img src="Pictures%20for%20guide/Screenshot_20251102_114416_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
 
 *Reviewing storage requirements before installation*
-
-#### Monitor Download Progress
-- Download progress appears on the game's detail page in the Library
-- You can see:
-  - Download percentage and progress bar
-  - Time remaining estimate
-  - Current status (downloading, installing, etc.)
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114729_GameNative.jpg" alt="Game Installed" width="400">
 
@@ -220,10 +194,7 @@ On first installation:
 
 > **Note:** Large games may take significant time. Downloads continue in the background, and you'll get a notification when complete.
 
-#### DLC Installation
-- If the game has DLC, GameNative will detect your owned DLC automatically
-- DLC will be downloaded along with the base game
-- Optional DLC can be managed in the game's settings after installation
+**DLC:** If the game has DLC, GameNative will detect your owned DLC automatically and download it along with the base game.
 
 ---
 
