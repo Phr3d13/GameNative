@@ -102,10 +102,6 @@ When you first open GameNative, you'll see the login screen with the GameNative 
 5. Scan the QR code displayed in GameNative with the Steam Mobile app or your desktop camera
 6. Confirm the login on your other device
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg" alt="QR Code Login" width="400">
-
-*QR Code login screen - scan with Steam Mobile or desktop*
-
 **Option 2: Username & Password Login**
 1. Tap the **Credentials** tab
 2. Enter your **Steam Username** (not email)
@@ -160,6 +156,10 @@ If your account has Steam Guard:
 <img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game Detail Page" width="400">
 
 *Game details showing install options and information*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg" alt="Game Detail Page with Install Button" width="400">
+
+*Game information page with install button and game details*
 
 ### Step 3: Install the Game
 
