@@ -6,14 +6,14 @@ Welcome to **GameNative**! This guide will help you get started with installing 
 
 ## 📋 Table of Contents
 
-1. [Requirements](#requirements)
-2. [Installation](#installation)
-3. [First Launch](#first-launch)
-4. [Installing Your First Game](#installing-your-first-game)
-5. [Playing Games](#playing-games)
-6. [Configuration & Settings](#configuration--settings)
-7. [Troubleshooting](#troubleshooting)
-8. [Getting Help](#getting-help)
+1. [Requirements](#-requirements)
+2. [Installation](#-installation)
+3. [First Launch](#-first-launch)
+4. [Installing Your First Game](#-installing-your-first-game)
+5. [Playing Games](#-playing-games)
+6. [Configuration & Settings](#-configuration--settings)
+7. [Troubleshooting](#-troubleshooting)
+8. [Getting Help](#-getting-help)
 
 ---
 
