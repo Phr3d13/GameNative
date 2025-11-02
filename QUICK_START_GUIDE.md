@@ -55,7 +55,7 @@ GameNative will request the following permissions:
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114025_Samsung%20Internet.jpg" alt="Download Dialog" width="400">
 
-*Release assets with downloadable APK files*
+*Browser security warning when downloading APK*
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Repository Page" width="400">
 
