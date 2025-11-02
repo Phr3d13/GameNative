@@ -79,9 +79,9 @@ If this is your first time installing an APK manually:
 4. Wait for installation to complete
 5. Tap **Open** or find GameNative in your app drawer
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114153_Package%20installer.jpg" alt="Package Installer - Install APK" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114153_Package%20installer.jpg" alt="Package Installer - Staging" width="400">
 
-*Android asking permission to install the APK*
+*Android staging the app for installation*
 
 <img src="Pictures%20for%20guide/Screenshot_20251102_114158_Package%20installer.jpg" alt="Install Confirmation" width="400">
 
@@ -133,10 +133,6 @@ When you first open GameNative, you'll see the login screen with the GameNative 
 4. Check **Remember Me** if you want to stay logged in
 5. Tap **Login**
 6. If you have Steam Guard enabled, you'll be prompted for your 2FA code
-
-<img src="Pictures%20for%20guide/Screenshot_20251102_114406_GameNative.jpg" alt="Credentials Login" width="400">
-
-*Username and password login screen*
 
 #### Two-Factor Authentication (2FA)
 If your account has Steam Guard:
