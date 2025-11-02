@@ -57,9 +57,13 @@ GameNative will request the following permissions:
 
 *List of APK files available for download*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Repository Page" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114047_Samsung%20Internet.jpg" alt="Download Security Dialog" width="400">
 
-*Browser showing repository information*
+*Browser security warning when downloading the APK file*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114146_Samsung%20Internet.jpg" alt="Download Notification" width="400">
+
+*APK download complete notification*
 
 ### Step 2: Enable Installation from Unknown Sources
 If this is your first time installing an APK manually:
@@ -67,10 +71,6 @@ If this is your first time installing an APK manually:
 1. Go to **Settings** → **Security** (or **Privacy**)
 2. Enable **Install from Unknown Sources** or **Allow from this source** for your file manager/browser
 3. Alternatively, modern Android will prompt you when you try to install
-
-<img src="Pictures%20for%20guide/Screenshot_20251102_114146_Samsung%20Internet.jpg" alt="Download Notification" width="400">
-
-*APK download complete notification*
 
 ### Step 3: Install the APK
 1. Open your **Downloads** folder or notification
