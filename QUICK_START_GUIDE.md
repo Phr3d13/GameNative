@@ -166,13 +166,10 @@ If your account has Steam Guard:
    - Install button (if not installed)
    - Storage requirements
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg" alt="Game Installed" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114406_GameNative.jpg" alt="Game Not Installed" width="400">
 
-*20 Minutes Till Dawn Installed*
+*20 Minutes Till Dawn Not Installed*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game First Run" width="400">
-
-*Game First Run*
 
 
 ### Step 3: Install the Game
@@ -193,12 +190,20 @@ On first installation:
 
 *Granting storage permission for game installation*
 
+<img src="Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg" alt="Game Installed" width="400">
+
+*20 Minutes Till Dawn Installed*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game First Run" width="400">
+
+*Game First Run*
+
 #### Choose Installation Options
 1. Tap **Install**
 2. Review the storage requirements dialog
 3. Tap **Proceed** to confirm
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114416_GameNative.jpg" alt="Storage Requirements Dialog" width="400">
 
 *Reviewing storage requirements before installation*
 
