@@ -45,7 +45,8 @@ GameNative will request the following permissions:
 2. Download the latest APK file (e.g., `GameNative-v1.x.x.apk`)
 3. If you see a security warning, this is normal for apps installed outside the Play Store
 
-![GitHub Releases Page](Pictures%20for%20guide/Screenshot_20251102_114001_Samsung%20Internet.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114001_Samsung%20Internet.jpg" alt="GitHub Releases Page" width="400">
+
 *The GameNative releases page on GitHub*
 
 ### Step 2: Enable Installation from Unknown Sources
@@ -62,11 +63,13 @@ If this is your first time installing an APK manually:
 4. Wait for installation to complete
 5. Tap **Open** or find GameNative in your app drawer
 
-![Package Installer - Install APK](Pictures%20for%20guide/Screenshot_20251102_114153_Package%20installer.jpg)
-*The Android package installer showing the GameNative APK*
+<img src="Pictures%20for%20guide/Screenshot_20251102_114153_Package%20installer.jpg" alt="Package Installer - Install APK" width="400">
 
-![Installation Complete](Pictures%20for%20guide/Screenshot_20251102_114226_Package%20installer.jpg)
-*Tap "Open" to launch GameNative after installation*
+*Android asking permission to install the APK*
+
+<img src="Pictures%20for%20guide/Screenshot_20251102_114226_Package%20installer.jpg" alt="Installation Complete" width="400">
+
+*Installation in progress*
 
 ---
 
@@ -76,7 +79,8 @@ If this is your first time installing an APK manually:
 
 When you first open GameNative, you'll see the login screen with the GameNative logo and two login options.
 
-![GameNative Login Screen](Pictures%20for%20guide/Screenshot_20251102_114233_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114233_GameNative.jpg" alt="GameNative Login Screen" width="400">
+
 *The GameNative login screen with QR Code and Credentials options*
 
 #### Permission Requests
@@ -84,7 +88,8 @@ When you first open GameNative, you'll see the login screen with the GameNative 
 - When installing your first game, you'll be asked for storage permissions
 - **Grant these permissions** for the best experience
 
-![Permission Request](Pictures%20for%20guide/Screenshot_20251102_114411_Permission%20controller.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114411_Permission%20controller.jpg" alt="Permission Request" width="400">
+
 *Android will prompt for necessary permissions*
 
 #### Choose Your Login Method
@@ -97,7 +102,8 @@ When you first open GameNative, you'll see the login screen with the GameNative 
 5. Scan the QR code displayed in GameNative with the Steam Mobile app or your desktop camera
 6. Confirm the login on your other device
 
-![QR Code Login](Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg" alt="QR Code Login" width="400">
+
 *QR Code login screen - scan with Steam Mobile or desktop*
 
 **Option 2: Username & Password Login**
@@ -108,7 +114,8 @@ When you first open GameNative, you'll see the login screen with the GameNative 
 5. Tap **Login**
 6. If you have Steam Guard enabled, you'll be prompted for your 2FA code
 
-![Credentials Login](Pictures%20for%20guide/Screenshot_20251102_114406_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114406_GameNative.jpg" alt="Credentials Login" width="400">
+
 *Username and password login screen*
 
 #### Two-Factor Authentication (2FA)
@@ -122,7 +129,8 @@ If your account has Steam Guard:
 - You'll see "Connecting to Steam..." while establishing connection
 - Once connected, you'll see your game library
 
-![Connecting to Steam](Pictures%20for%20guide/Screenshot_20251102_114416_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114416_GameNative.jpg" alt="Connecting to Steam" width="400">
+
 *Connecting to Steam servers*
 
 > **Tip:** The first boot may take a few minutes while GameNative sets up the emulation environment. Subsequent launches will be much faster!
@@ -137,7 +145,8 @@ If your account has Steam Guard:
 3. Use the search icon to find specific games
 4. Games you own will be displayed with their cover art
 
-![Game Library](Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg" alt="Game Library" width="400">
+
 *Your Steam library showing available games*
 
 ### Step 2: Select a Game
@@ -148,7 +157,8 @@ If your account has Steam Guard:
    - Install button (if not installed)
    - Storage requirements
 
-![Game Detail Page](Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game Detail Page" width="400">
+
 *Game details showing install options and information*
 
 ### Step 3: Install the Game
@@ -177,7 +187,8 @@ On first installation:
   - Time remaining estimate
   - Current status (downloading, installing, etc.)
 
-![Download Progress](Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114454_GameNative.jpg" alt="Download Progress" width="400">
+
 *Game downloading with progress indicator*
 
 > **Note:** Large games may take significant time. Downloads continue in the background, and you'll get a notification when complete.
@@ -202,7 +213,8 @@ On first installation:
    - Show a brief loading screen with tips
    - Launch the game
 
-![Game Ready to Play](Pictures%20for%20guide/Screenshot_20251102_114729_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_114729_GameNative.jpg" alt="Game Ready to Play" width="400">
+
 *Game installed and ready to launch*
 
 > **First Launch:** The first time you launch any game, expect a 2-5 minute setup as GameNative creates the Wine environment. A booting splash screen will show helpful tips during this time.
@@ -215,7 +227,8 @@ On first installation:
   - XInput API enabled by default
   - Configure in Settings → Emulation → Container Config → Input tab
 
-![In-Game Screenshot](Pictures%20for%20guide/Screenshot_20251102_115201_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_115201_GameNative.jpg" alt="In-Game Screenshot" width="600">
+
 *Game running in GameNative*
 
 #### Screen Orientation
@@ -242,7 +255,8 @@ On first installation:
 ### Accessing Settings
 Tap the **Settings** icon (gear) in the top-right corner of the Library screen.
 
-![Settings Menu](Pictures%20for%20guide/Screenshot_20251102_115220_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_115220_GameNative.jpg" alt="Settings Menu" width="400">
+
 *GameNative settings menu*
 
 ### Settings Overview
@@ -281,13 +295,15 @@ Each game has individual settings accessible from its detail page:
    - **Input:** Controller settings (XInput, SDL API)
    - **Audio:** Audio driver, performance mode, latency, volume
    - **Environment Variables:** Add custom variables
-   - **Drives:** Manage virtual drives (C: drive is the game directory)
+   - Drives:** Manage virtual drives (C: drive is the game directory)
    - **Startup:** Processor affinity, startup programs
 
-![Game Settings](Pictures%20for%20guide/Screenshot_20251102_115226_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_115226_GameNative.jpg" alt="Game Settings" width="400">
+
 *Per-game configuration options*
 
-![Advanced Settings](Pictures%20for%20guide/Screenshot_20251102_115233_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_115233_GameNative.jpg" alt="Advanced Settings" width="400">
+
 *Advanced emulation settings for performance tuning*
 
 > **Tip:** Most games work well with default settings. Only adjust these if you encounter issues or want to optimize performance.
@@ -301,7 +317,8 @@ GameNative automatically syncs your Steam Cloud saves:
 - Works seamlessly if you also play on PC
 - Requires internet connection for sync
 
-![Cloud Sync](Pictures%20for%20guide/Screenshot_20251102_115426_GameNative.jpg)
+<img src="Pictures%20for%20guide/Screenshot_20251102_115426_GameNative.jpg" alt="Cloud Sync" width="400">
+
 *Cloud save synchronization dialog*
 
 **Conflict Resolution:**
