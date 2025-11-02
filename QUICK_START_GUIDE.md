@@ -79,10 +79,6 @@ If this is your first time installing an APK manually:
 4. Wait for installation to complete
 5. Tap **Open** or find GameNative in your app drawer
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114153_Package%20installer.jpg" alt="Package Installer - Staging" width="400">
-
-*Android staging the app for installation*
-
 <img src="Pictures%20for%20guide/Screenshot_20251102_114158_Package%20installer.jpg" alt="Install Confirmation" width="400">
 
 *Confirming installation of GameNative*
@@ -145,10 +141,6 @@ If your account has Steam Guard:
 - You'll see "Connecting to Steam..." while establishing connection
 - Once connected, you'll see your game library
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114416_GameNative.jpg" alt="Connecting to Steam" width="400">
-
-*Connecting to Steam servers*
-
 > **Tip:** The first boot may take a few minutes while GameNative sets up the emulation environment. Subsequent launches will be much faster!
 
 ---
@@ -161,9 +153,10 @@ If your account has Steam Guard:
 3. Use the search icon to find specific games
 4. Games you own will be displayed with their cover art
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg" alt="Game Library" width="400">
 
-*Your Steam library showing available games*
+<img src="Pictures for guide/Screenshot_20251102_114358_GameNative.jpg" alt="Showing Library" width="400">
+
+*Showing Library*
 
 ### Step 2: Select a Game
 1. Tap on a game to view its details
@@ -173,13 +166,14 @@ If your account has Steam Guard:
    - Install button (if not installed)
    - Storage requirements
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game Detail Page" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114430_GameNative.jpg" alt="Game Installed" width="400">
 
-*Game detail page showing game information*
+*20 Minutes Till Dawn Installed*
 
-<img src="Pictures%20for%20guide/Screenshot_20251102_114358_GameNative.jpg" alt="Game with Install Button" width="400">
+<img src="Pictures%20for%20guide/Screenshot_20251102_114436_GameNative.jpg" alt="Game First Run" width="400">
 
-*"20 Minutes Till Dawn" ready to install*
+*Game First Run*
+
 
 ### Step 3: Install the Game
 
