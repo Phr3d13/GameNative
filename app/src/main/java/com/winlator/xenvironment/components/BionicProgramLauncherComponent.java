@@ -46,6 +46,9 @@ import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CountDownLatch;
 
 import app.gamenative.service.SteamService;
 
@@ -64,6 +67,8 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
     private final ContentProfile wineProfile;
     private Container container;
     private File workingDir;
+    private static final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public void setWineInfo(WineInfo wineInfo) {
         this.wineInfo = wineInfo;
@@ -81,18 +86,69 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
     }
 
     private Runnable preUnpack;
+    private Runnable onPreUnpackComplete;
+    
     public void setPreUnpack(Runnable r) { this.preUnpack = r; }
+    
+    public void setOnPreUnpackComplete(Runnable r) { this.onPreUnpackComplete = r; }
+    
     @Override
     public void start() {
-        synchronized (lock) {
-            if (wineInfo.isArm64EC())
-                extractEmulatorsDlls();
-            else
-                extractBox64Files();
-            if (preUnpack != null) preUnpack.run();
-            pid = execGuestProgram();
-            Log.d("BionicProgramLauncherComponent", "Process " + pid + " started");
-            SteamService.setGameRunning(true);
+        if (wineInfo.isArm64EC())
+            extractEmulatorsDlls();
+        else
+            extractBox64Files();
+            
+        if (preUnpack != null) {
+            Log.d("BionicProgramLauncherComponent", "Running preUnpack on background thread...");
+            // Use CountDownLatch to wait for preUnpack to complete on background thread
+            final CountDownLatch latch = new CountDownLatch(1);
+            final boolean[] success = {true};
+            
+            // Run preUnpack on background thread to prevent ANRs
+            backgroundExecutor.execute(() -> {
+                try {
+                    preUnpack.run();
+                    Log.d("BionicProgramLauncherComponent", "preUnpack completed");
+                } catch (Exception e) {
+                    Log.e("BionicProgramLauncherComponent", "Error during preUnpack", e);
+                    success[0] = false;
+                } finally {
+                    latch.countDown();
+                }
+            });
+            
+            // Wait for preUnpack to complete (blocks current thread but preUnpack runs on background)
+            try {
+                latch.await();
+                Log.d("BionicProgramLauncherComponent", "preUnpack wait complete, continuing on current thread");
+            } catch (InterruptedException e) {
+                Log.e("BionicProgramLauncherComponent", "Interrupted while waiting for preUnpack", e);
+                success[0] = false;
+            }
+            
+            // Now execute game on current thread (after XServer is fully initialized)
+            if (success[0]) {
+                synchronized (lock) {
+                    pid = execGuestProgram();
+                    Log.d("BionicProgramLauncherComponent", "Process " + pid + " started");
+                    SteamService.setGameRunning(true);
+                }
+            }
+            
+            // Notify completion on main thread (to hide booting splash)
+            if (onPreUnpackComplete != null) {
+                mainHandler.post(() -> {
+                    onPreUnpackComplete.run();
+                });
+            }
+        } else {
+            // No preUnpack, start immediately on current thread
+            synchronized (lock) {
+                pid = execGuestProgram();
+                Log.d("BionicProgramLauncherComponent", "Process " + pid + " started");
+                SteamService.setGameRunning(true);
+            }
         }
     }
 

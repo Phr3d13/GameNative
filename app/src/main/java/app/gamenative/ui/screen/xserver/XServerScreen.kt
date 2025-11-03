@@ -1108,8 +1108,28 @@ private fun setupXEnvironment(
         guestProgramLauncherComponent.box86Version = container.box86Version
         guestProgramLauncherComponent.box86Preset = container.box86Preset
         guestProgramLauncherComponent.box64Preset = container.box64Preset
+        
+        // Set up preUnpack callback for first-time game launch or DRM reset
+        // This runs on a background thread to prevent ANRs
         guestProgramLauncherComponent.setPreUnpack {
             unpackExecutableFile(context, container.isNeedsUnpacking, container, appId, appLaunchInfo, guestProgramLauncherComponent, containerVariantChanged, onGameLaunchError)
+        }
+        
+        // Set callback for when preUnpack completes
+        // This callback runs on the main thread after background unpacking is done
+        when (guestProgramLauncherComponent) {
+            is GlibcProgramLauncherComponent -> {
+                guestProgramLauncherComponent.setOnPreUnpackComplete {
+                    Timber.i("Pre-unpack completed, game process started")
+                    // Booting splash will be hidden automatically when window is mapped
+                }
+            }
+            is BionicProgramLauncherComponent -> {
+                guestProgramLauncherComponent.setOnPreUnpackComplete {
+                    Timber.i("Pre-unpack completed, game process started")
+                    // Booting splash will be hidden automatically when window is mapped
+                }
+            }
         }
 
         val enableGstreamer = container.isGstreamerWorkaround()

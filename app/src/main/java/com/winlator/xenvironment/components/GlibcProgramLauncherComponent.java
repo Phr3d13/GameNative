@@ -4,6 +4,8 @@ import static com.winlator.core.ProcessHelper.splitCommand;
 
 import android.content.Context;
 import android.media.Image;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 
@@ -30,6 +32,9 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CountDownLatch;
 
 import app.gamenative.service.SteamService;
 
@@ -50,6 +55,8 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
     private final ContentProfile wineProfile;
     private File workingDir;
     private Container container;
+    private static final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public Container getContainer() { return this.container; }
     public void setContainer(Container container) { this.container = container; }
@@ -60,18 +67,69 @@ public class GlibcProgramLauncherComponent extends GuestProgramLauncherComponent
     }
 
     private Runnable preUnpack;
+    private Runnable onPreUnpackComplete;
+    
     public void setPreUnpack(Runnable r) { this.preUnpack = r; }
+    
+    public void setOnPreUnpackComplete(Runnable r) { this.onPreUnpackComplete = r; }
+    
     @Override
     public void start() {
         Log.d("GlibcProgramLauncherComponent", "Starting...");
-        synchronized (lock) {
-            stop();
-            extractBox64Files();
-            copyDefaultBox64RCFile();
-            if (preUnpack != null) preUnpack.run();
-            pid = execGuestProgram();
-            Log.d("GlibcProgramLauncherComponent", "Process " + pid + " started");
-            SteamService.setGameRunning(true);
+        stop();
+        extractBox64Files();
+        copyDefaultBox64RCFile();
+        
+        if (preUnpack != null) {
+            Log.d("GlibcProgramLauncherComponent", "Running preUnpack on background thread...");
+            // Use CountDownLatch to wait for preUnpack to complete on background thread
+            final CountDownLatch latch = new CountDownLatch(1);
+            final boolean[] success = {true};
+            
+            // Run preUnpack on background thread to prevent ANRs
+            backgroundExecutor.execute(() -> {
+                try {
+                    preUnpack.run();
+                    Log.d("GlibcProgramLauncherComponent", "preUnpack completed");
+                } catch (Exception e) {
+                    Log.e("GlibcProgramLauncherComponent", "Error during preUnpack", e);
+                    success[0] = false;
+                } finally {
+                    latch.countDown();
+                }
+            });
+            
+            // Wait for preUnpack to complete (blocks current thread but preUnpack runs on background)
+            try {
+                latch.await();
+                Log.d("GlibcProgramLauncherComponent", "preUnpack wait complete, continuing on current thread");
+            } catch (InterruptedException e) {
+                Log.e("GlibcProgramLauncherComponent", "Interrupted while waiting for preUnpack", e);
+                success[0] = false;
+            }
+            
+            // Now execute game on current thread (after XServer is fully initialized)
+            if (success[0]) {
+                synchronized (lock) {
+                    pid = execGuestProgram();
+                    Log.d("GlibcProgramLauncherComponent", "Process " + pid + " started");
+                    SteamService.setGameRunning(true);
+                }
+            }
+            
+            // Notify completion on main thread (to hide booting splash)
+            if (onPreUnpackComplete != null) {
+                mainHandler.post(() -> {
+                    onPreUnpackComplete.run();
+                });
+            }
+        } else {
+            // No preUnpack, start immediately on current thread
+            synchronized (lock) {
+                pid = execGuestProgram();
+                Log.d("GlibcProgramLauncherComponent", "Process " + pid + " started");
+                SteamService.setGameRunning(true);
+            }
         }
     }
 
