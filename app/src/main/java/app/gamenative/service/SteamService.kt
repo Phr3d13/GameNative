@@ -931,47 +931,50 @@ class SteamService : Service(), IChallengeUrlChanged {
 
             Timber.i("Starting download for $appId")
 
-            val info = DownloadInfo(entitledDepotIds.size).also { di ->
+            // Sort depots by ID to ensure higher depot IDs (newer DLC) extract last
+            // This prevents race conditions where parallel downloads would randomly overwrite files
+            val sortedDepotIds = entitledDepotIds.sorted()
+            Timber.i("Download order (sorted by depot ID): $sortedDepotIds")
+
+            val info = DownloadInfo(sortedDepotIds.size).also { di ->
                 di.setDownloadJob(instance!!.scope.launch {
-                    coroutineScope {
-                        entitledDepotIds.mapIndexed { idx, depotId ->
-                            async {
-                                depotGate.acquire()               // ── enter gate
-                                var success = false
-                                try {
-                                    val MIN_INTERVAL_MS = 1000L
-                                    var lastEmit = 0L
-                                    Timber.i("Downloading game to " + defaultAppInstallPath)
-                                    success = retry(times = 3, backoffMs = 2_000) {
-                                        ContentDownloader(instance!!.steamClient!!)
-                                            .downloadApp(
-                                                appId         = appId,
-                                                depotId       = depotId,
-                                                installPath   = defaultAppInstallPath,
-                                                stagingPath   = defaultAppStagingPath,
-                                                branch        = branch,
-                                                maxDownloads  = CHUNKS_PER_DEPOT,
-                                                onDownloadProgress = { p ->
-                                                    val now = SystemClock.elapsedRealtime()
-                                                    if (now - lastEmit >= MIN_INTERVAL_MS || p >= 1f) {
-                                                        lastEmit = now
-                                                        di.setProgress(p, idx)
-                                                    }
-                                                },
-                                                parentScope   = this,
-                                            ).await()
-                                    }
-                                    if (success) di.setProgress(1f, idx)
-                                    else {
-                                        Timber.w("Depot $depotId skipped after retries")
-                                        di.setWeight(idx, 0)
-                                        di.setProgress(1f, idx)
-                                    }
-                                } finally {
-                                    depotGate.release()
-                                }
+                    // Download depots sequentially in sorted order to ensure correct overwrite behavior
+                    sortedDepotIds.forEachIndexed { idx, depotId ->
+                        var success = false
+                        try {
+                            val MIN_INTERVAL_MS = 1000L
+                            var lastEmit = 0L
+                            Timber.i("Downloading depot $depotId to $defaultAppInstallPath")
+                            success = retry(times = 3, backoffMs = 2_000) {
+                                ContentDownloader(instance!!.steamClient!!)
+                                    .downloadApp(
+                                        appId         = appId,
+                                        depotId       = depotId,
+                                        installPath   = defaultAppInstallPath,
+                                        stagingPath   = defaultAppStagingPath,
+                                        branch        = branch,
+                                        maxDownloads  = CHUNKS_PER_DEPOT,
+                                        onDownloadProgress = { p ->
+                                            val now = SystemClock.elapsedRealtime()
+                                            if (now - lastEmit >= MIN_INTERVAL_MS || p >= 1f) {
+                                                lastEmit = now
+                                                di.setProgress(p, idx)
+                                            }
+                                        },
+                                        parentScope   = this,
+                                    ).await()
                             }
-                        }.awaitAll()
+                            if (success) di.setProgress(1f, idx)
+                            else {
+                                Timber.w("Depot $depotId skipped after retries")
+                                di.setWeight(idx, 0)
+                                di.setProgress(1f, idx)
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to download depot $depotId")
+                            di.setWeight(idx, 0)
+                            di.setProgress(1f, idx)
+                        }
                     }
                     downloadJobs.remove(appId)
                     // Write download complete marker on disk
@@ -980,7 +983,7 @@ class SteamService : Service(), IChallengeUrlChanged {
 
             downloadJobs[appId] = info
             var lastPercent = -1
-            val sizes = entitledDepotIds.map { depotId ->
+            val sizes = sortedDepotIds.map { depotId ->
                 val depot = getAppInfoOf(appId)!!.depots[depotId]!!
 
                 val mInfo   = depot.manifests[branch]
@@ -998,7 +1001,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                 if (percent >= 100) {
                     val ownedDlc = runBlocking { getOwnedAppDlc(appId) }
                     MarkerUtils.addMarker(getAppDirPath(appId), Marker.DOWNLOAD_COMPLETE_MARKER)
-                    runBlocking { instance?.appInfoDao?.insert(AppInfo(appId, isDownloaded = true, downloadedDepots = entitledDepotIds,
+                    runBlocking { instance?.appInfoDao?.insert(AppInfo(appId, isDownloaded = true, downloadedDepots = sortedDepotIds,
                         dlcDepots = ownedDlc.values.map { it.dlcAppId }.distinct())) }
                     MarkerUtils.removeMarker(getAppDirPath(appId), Marker.STEAM_DLL_REPLACED)
                 }
