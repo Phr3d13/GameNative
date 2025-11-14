@@ -13,6 +13,7 @@ enum class AppOptionMenuType(val text: String) {
     Uninstall("Uninstall"),
     VerifyFiles("Verify files"),
     Update("Update"),
+    ManageDlc("Manage DLC"),
     MoveToExternalStorage("Move to external storage"),
     MoveToInternalStorage("Move to internal storage"),
     ForceCloudSync("Force cloud sync"),

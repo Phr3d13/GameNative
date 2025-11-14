@@ -2,6 +2,8 @@ package app.gamenative.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import app.gamenative.db.DATABASE_NAME
 import app.gamenative.db.PluviaDatabase
 import app.gamenative.db.dao.AppInfoDao
@@ -16,12 +18,21 @@ import javax.inject.Singleton
 @Module
 class DatabaseModule {
 
+    companion object {
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE app_info ADD COLUMN enabled_dlc TEXT")
+            }
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): PluviaDatabase {
         // The db will be considered unstable during development.
         // Once stable we should add a (room) db migration
         return Room.databaseBuilder(context, PluviaDatabase::class.java, DATABASE_NAME)
+            .addMigrations(MIGRATION_5_6)
             .fallbackToDestructiveMigration() // TODO remove before prod
             .build()
     }

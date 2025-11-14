@@ -428,6 +428,18 @@ class SteamService : Service(), IChallengeUrlChanged {
             return runBlocking(Dispatchers.IO) { instance?.appInfoDao?.getInstalledDepots(appId)?.dlcDepots }
         }
 
+        fun getEnabledDlc(appId: Int): List<Int>? {
+            return runBlocking(Dispatchers.IO) { instance?.appInfoDao?.get(appId)?.enabledDlc }
+        }
+
+        fun setEnabledDlc(appId: Int, dlcAppIds: List<Int>) {
+            runBlocking(Dispatchers.IO) {
+                instance?.appInfoDao?.get(appId)?.let { currentAppInfo ->
+                    instance?.appInfoDao?.update(currentAppInfo.copy(enabledDlc = dlcAppIds))
+                }
+            }
+        }
+
         fun getAppDownloadInfo(appId: Int): DownloadInfo? {
             return downloadJobs[appId]
         }
@@ -741,7 +753,7 @@ class SteamService : Service(), IChallengeUrlChanged {
             return File(appDirPath).deleteRecursively()
         }
 
-        fun downloadApp(appId: Int): DownloadInfo? {
+        fun downloadApp(appId: Int, enabledDlcFilter: List<Int>? = null): DownloadInfo? {
             // Enforce Wi-Fi-only downloads
             if (PrefManager.downloadOnWifiOnly && instance?.isWifiConnected == false) {
                 instance?.notificationHelper?.notify("Not connected to Wi-Fi")
@@ -749,7 +761,20 @@ class SteamService : Service(), IChallengeUrlChanged {
             }
             return getAppInfoOf(appId)?.let { appInfo ->
                 Timber.i("App contains ${appInfo.depots.size} depot(s): ${appInfo.depots.keys}")
-                downloadApp(appId, getDownloadableDepots(appId).keys.toList(), "public")
+                val downloadableDepots = getDownloadableDepots(appId)
+                
+                // Filter depots based on enabled DLC if specified
+                val filteredDepots = if (enabledDlcFilter != null) {
+                    downloadableDepots.filter { (_, depot) ->
+                        // Always include base game depots (dlcAppId == INVALID_APP_ID)
+                        depot.dlcAppId == INVALID_APP_ID || enabledDlcFilter.contains(depot.dlcAppId)
+                    }.keys.toList()
+                } else {
+                    downloadableDepots.keys.toList()
+                }
+                
+                Timber.i("Filtered depots (enabledDlc: $enabledDlcFilter): $filteredDepots")
+                downloadApp(appId, filteredDepots, "public")
             }
         }
 

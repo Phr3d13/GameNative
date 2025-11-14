@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +43,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -95,6 +97,7 @@ import app.gamenative.utils.SteamUtils
 import com.winlator.container.ContainerData
 import com.winlator.xenvironment.ImageFsInstaller
 import com.winlator.fexcore.FEXCoreManager
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -213,6 +216,9 @@ fun AppScreen(
     }
 
     var pendingUpdateVerifyOperation by rememberSaveable { mutableStateOf<AppOptionMenuType?>(null) }
+
+    var showDlcDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedDlc by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
 
     var showConfigDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -593,6 +599,81 @@ fun AppScreen(
         },
     )
 
+    // DLC Management Dialog
+    if (showDlcDialog) {
+        AlertDialog(
+            onDismissRequest = { showDlcDialog = false },
+            title = { Text("Manage DLC") },
+            text = {
+                Column {
+                    Text("Select which DLC to install:", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Get unique DLC app IDs from depots
+                    val dlcDepots = SteamService.getAppDlc(gameId)
+                    val uniqueDlcAppIds = dlcDepots.values.map { it.dlcAppId }.distinct()
+                    
+                    uniqueDlcAppIds.forEach { dlcAppId ->
+                        val dlcInfo = SteamService.getAppInfoOf(dlcAppId)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Checkbox(
+                                checked = selectedDlc.contains(dlcAppId),
+                                onCheckedChange = { checked ->
+                                    selectedDlc = if (checked) {
+                                        selectedDlc + dlcAppId
+                                    } else {
+                                        selectedDlc - dlcAppId
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = dlcInfo?.name ?: "DLC $dlcAppId",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDlcDialog = false
+                        // Delete game and re-download with selected DLC
+                        CoroutineScope(Dispatchers.IO).launch {
+                            // Save selected DLC to database
+                            SteamService.setEnabledDlc(gameId, selectedDlc)
+                            
+                            // Delete existing game files
+                            val appDir = File(getAppDirPath(gameId))
+                            if (appDir.exists()) {
+                                appDir.deleteRecursively()
+                            }
+                            
+                            // Re-download with selected DLC
+                            withContext(Dispatchers.Main) {
+                                isInstalled = false
+                            }
+                            downloadInfo = SteamService.downloadApp(gameId, enabledDlcFilter = selectedDlc)
+                        }
+                    }
+                ) {
+                    Text("Save & Rebuild")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDlcDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     LoadingDialog(
         visible = loadingDialogVisible,
         progress = loadingProgress,
@@ -901,6 +982,26 @@ fun AppScreen(
                                             }
                                         }
                                     }
+                                },
+                            ),
+                        )
+                    } else {
+                        emptyArray()
+                    }
+                ),
+                *(
+                    if (SteamService.getAppDlc(gameId).isNotEmpty()) {
+                        arrayOf(
+                            AppMenuOption(
+                                AppOptionMenuType.ManageDlc,
+                                onClick = {
+                                    // Get unique DLC app IDs from depots
+                                    val dlcAppIds = SteamService.getAppDlc(gameId).values
+                                        .map { it.dlcAppId }
+                                        .distinct()
+                                    // Initialize selected DLC from database or default to all
+                                    selectedDlc = SteamService.getEnabledDlc(gameId) ?: dlcAppIds
+                                    showDlcDialog = true
                                 },
                             ),
                         )

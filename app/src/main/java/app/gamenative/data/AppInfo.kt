@@ -13,4 +13,6 @@ data class AppInfo (
     val downloadedDepots: List<Int> = emptyList<Int>(),
     @ColumnInfo("dlc_depots")
     val dlcDepots: List<Int> = emptyList<Int>(),
+    @ColumnInfo("enabled_dlc")
+    val enabledDlc: List<Int>? = null, // null = all DLC enabled (default), empty = none, or specific DLC app IDs
 ){}
