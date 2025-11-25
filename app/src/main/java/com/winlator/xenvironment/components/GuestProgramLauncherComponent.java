@@ -230,6 +230,8 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         // boolean enableBox86_64Logs = PrefManager.getBoolean("enable_box86_64_logs", false);
 
         EnvVars envVars = new EnvVars();
+        // Ensure controller memfiles and EVSHIM_MAX_PLAYERS are set for guest processes
+        ControllerSupport.setupGamepadMemFiles(context, envVars);
         // if (!wow64Mode) addBox86EnvVars(envVars, enableBox86_64Logs);
         // addBox64EnvVars(envVars, enableBox86_64Logs);
 

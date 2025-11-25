@@ -173,10 +173,8 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
 
     private int execGuestProgram() {
 
-        final int MAX_PLAYERS = 1; // old static method
-
-        // Get the number of enabled players directly from ControllerManager.
-        final int enabledPlayerCount = MAX_PLAYERS;
+        // Create mem files and set environment for controller support
+        int enabledPlayerCount = ControllerSupport.setupGamepadMemFiles(this.environment.getContext(), envVars);
         for (int i = 0; i < enabledPlayerCount; i++) {
             String memPath;
             if (i == 0) {
