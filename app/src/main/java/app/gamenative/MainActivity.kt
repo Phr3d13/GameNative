@@ -2,8 +2,10 @@ package app.gamenative
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Color.TRANSPARENT
 import android.os.Build
@@ -231,6 +233,13 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
+        // Unregister screen state receiver
+        try {
+            unregisterReceiver(screenStateReceiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver was never registered or already unregistered
+        }
+
         PluviaApp.events.emit(AndroidEvent.ActivityDestroyed)
 
         PluviaApp.events.off<AndroidEvent.SetSystemUIVisibility, Unit>(onSetSystemUi)
@@ -252,14 +261,43 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    if (SteamService.isGameRunning) {
+                        PluviaApp.xEnvironment?.onPause()
+                        Timber.d("Game paused due to screen off")
+                    }
+                }
+                Intent.ACTION_SCREEN_ON -> {
+                    // Resume will happen in onResume when device is unlocked
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         // disable auto-stop when returning to foreground
         SteamService.autoStopWhenIdle = false
+        
+        // Resume game if it was running
+        if (SteamService.isGameRunning) {
+            PluviaApp.xEnvironment?.onResume()
+            Timber.d("Game resumed")
+        }
+        
         PostHog.capture(event = "app_foregrounded")
     }
 
     override fun onPause() {
+        // Pause game when app goes to background
+        if (SteamService.isGameRunning) {
+            PluviaApp.xEnvironment?.onPause()
+            Timber.d("Game paused due to app backgrounded")
+        }
+        
         PostHog.capture(event = "app_backgrounded")
         super.onPause()
     }
@@ -283,6 +321,16 @@ class MainActivity : ComponentActivity() {
             Timber.i("Stopping SteamService - no active operations")
             SteamService.stop()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Register screen state receiver
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }
+        registerReceiver(screenStateReceiver, filter)
     }
 
     // override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

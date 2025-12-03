@@ -3,7 +3,9 @@ package com.winlator.xenvironment;
 import android.content.Context;
 
 import com.winlator.core.FileUtils;
+import com.winlator.xenvironment.components.ALSAServerComponent;
 import com.winlator.xenvironment.components.GuestProgramLauncherComponent;
+import com.winlator.xenvironment.components.PulseAudioComponent;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -75,10 +77,22 @@ public class XEnvironment implements Iterable<EnvironmentComponent> {
     public void onPause() {
         GuestProgramLauncherComponent guestProgramLauncherComponent = getComponent(GuestProgramLauncherComponent.class);
         if (guestProgramLauncherComponent != null) guestProgramLauncherComponent.suspendProcess();
+        
+        PulseAudioComponent pulseAudioComponent = getComponent(PulseAudioComponent.class);
+        if (pulseAudioComponent != null) pulseAudioComponent.pause();
+        
+        ALSAServerComponent alsaServerComponent = getComponent(ALSAServerComponent.class);
+        if (alsaServerComponent != null) alsaServerComponent.pause();
     }
 
     public void onResume() {
         GuestProgramLauncherComponent guestProgramLauncherComponent = getComponent(GuestProgramLauncherComponent.class);
         if (guestProgramLauncherComponent != null) guestProgramLauncherComponent.resumeProcess();
+        
+        PulseAudioComponent pulseAudioComponent = getComponent(PulseAudioComponent.class);
+        if (pulseAudioComponent != null) pulseAudioComponent.resume();
+        
+        ALSAServerComponent alsaServerComponent = getComponent(ALSAServerComponent.class);
+        if (alsaServerComponent != null) alsaServerComponent.resume();
     }
 }

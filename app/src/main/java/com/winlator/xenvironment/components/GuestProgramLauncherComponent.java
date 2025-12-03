@@ -372,13 +372,15 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
 
     public void suspendProcess() {
         synchronized (lock) {
-            if (pid != -1) ProcessHelper.suspendProcess(pid);
+            // Suspend all Wine processes, not just the proot launcher
+            ProcessHelper.pauseAllWineProcesses();
         }
     }
 
     public void resumeProcess() {
         synchronized (lock) {
-            if (pid != -1) ProcessHelper.resumeProcess(pid);
+            // Resume all Wine processes
+            ProcessHelper.resumeAllWineProcesses();
         }
     }
 

@@ -43,4 +43,14 @@ public class ALSAServerComponent extends EnvironmentComponent {
             this.connector = null;
         }
     }
+
+    public void pause() {
+        // ALSA server runs in connector thread, pause is handled by client suspension
+        Log.d("ALSAServerComponent", "Pause requested");
+    }
+
+    public void resume() {
+        // ALSA server runs in connector thread, resume is handled by client resumption
+        Log.d("ALSAServerComponent", "Resume requested");
+    }
 }
