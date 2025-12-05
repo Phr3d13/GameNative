@@ -51,6 +51,8 @@ import com.winlator.contents.ContentProfile
 import com.winlator.contents.ContentsManager
 import com.winlator.core.AppUtils
 import com.winlator.core.Callback
+import com.winlator.contentdialog.ContentDialog
+import app.gamenative.R
 import com.winlator.core.DXVKHelper
 import com.winlator.core.DefaultVersion
 import com.winlator.core.FileUtils
@@ -274,6 +276,7 @@ fun XServerScreen(
                             Timber.d("Controls visibility toggled to: $areControlsVisible")
                         }
 
+                        // Controller management removed in revert; no-op
                         NavigationDialog.ACTION_EXIT_GAME -> {
                             if (currentAppInfo != null) {
                                 PostHog.capture(

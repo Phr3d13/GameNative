@@ -132,6 +132,10 @@ class MainActivity : ComponentActivity() {
         // Initialize the controller management system
         ControllerManager.getInstance().init(getApplicationContext());
 
+        // Detect initial Samsung DeX mode (reflection-based per Samsung guidance)
+        val desktopModeEnabled = checkDeXEnabledSafely()
+        Timber.d("[DeX] Initial desktop mode enabled: $desktopModeEnabled")
+
         ContainerUtils.setContainerDefaults(applicationContext)
 
         handleLaunchIntent(intent)
@@ -339,7 +343,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // Log.d("MainActivity", "Requested orientation: $requestedOrientation => ${Orientation.fromActivityInfoValue(requestedOrientation)}")
+        // Log DeX mode transitions
+        val currentDesktopMode = checkDeXEnabledSafely()
+        Timber.d("[DeX] onConfigurationChanged: desktopMode=$currentDesktopMode | newConfig=$newConfig")
     }
 
     private fun startOrientator() {
@@ -412,6 +418,18 @@ class MainActivity : ComponentActivity() {
             )
 
             requestedOrientation = nearest.first.activityInfoValue
+        }
+    }
+    // Reflection-based DeX detection compatible with devices that support DeX
+    private fun checkDeXEnabledSafely(): Boolean {
+        return try {
+            val config = resources.configuration
+            val configClass = config::class.java
+            val semDesktopEnabled = configClass.getField("SEM_DESKTOP_MODE_ENABLED").getInt(configClass)
+            val currentValue = configClass.getField("semDesktopModeEnabled").getInt(config)
+            semDesktopEnabled == currentValue
+        } catch (e: Exception) {
+            false
         }
     }
 }
