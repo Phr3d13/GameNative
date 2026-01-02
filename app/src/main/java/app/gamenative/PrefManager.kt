@@ -519,6 +519,17 @@ object PrefManager {
             setPref(REFRESH_TOKEN_ENC, bytes)
         }
 
+    // IGDB credentials (optional) - used as a fallback data source for metadata
+    private val IGDB_CLIENT_ID = stringPreferencesKey("igdb_client_id")
+    var igdbClientId: String
+        get() = getPref(IGDB_CLIENT_ID, "")
+        set(value) { setPref(IGDB_CLIENT_ID, value) }
+
+    private val IGDB_BEARER_TOKEN = stringPreferencesKey("igdb_bearer_token")
+    var igdbBearerToken: String
+        get() = getPref(IGDB_BEARER_TOKEN, "")
+        set(value) { setPref(IGDB_BEARER_TOKEN, value) }
+
     // Special: Because null value.
     private val CLIENT_ID = longPreferencesKey("client_id")
     var clientId: Long?

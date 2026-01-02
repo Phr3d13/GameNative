@@ -35,11 +35,14 @@ import kotlin.io.path.exists
 import kotlin.io.path.name
 import timber.log.Timber
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 object SteamUtils {
+    // IGDB credentials are read from PrefManager at runtime (no hardcoded defaults).
 
     internal val http = OkHttpClient.Builder()
         .readTimeout(5, TimeUnit.MINUTES)      // from 2 min → 5 min
@@ -972,8 +975,23 @@ object SteamUtils {
                 res.use {
                     val body = it.body?.string() ?: run { callback(-1); return }
                     Timber.i("[DX Fetch] Raw fbody etchDirect3DMajor for body=%s", body)
-                    val arr = JSONObject(body)
-                        .optJSONArray("cargoquery") ?: run { callback(-1); return }
+
+                    // Some sites (Cloudflare, anti-bot) may return an HTML challenge page instead
+                    // of JSON. Detect that quickly and fall back to IGDB when it happens.
+                    val trimmed = body.trimStart()
+                    if (trimmed.startsWith("<")) {
+                        Timber.w("[DX Fetch] PCGamingWiki returned non-JSON (HTML); falling back to IGDB")
+                        fetchDirect3DMajorFromIGDB(steamAppId, callback)
+                        return
+                    }
+
+                    val arr = try {
+                        JSONObject(body).optJSONArray("cargoquery")
+                    } catch (e: Exception) {
+                        Timber.w(e, "[DX Fetch] Failed to parse PCGamingWiki JSON; falling back to IGDB")
+                        fetchDirect3DMajorFromIGDB(steamAppId, callback)
+                        return
+                    } ?: run { fetchDirect3DMajorFromIGDB(steamAppId, callback); return }
 
                     // There should be at most one row; take the first.
                     val raw = arr.optJSONObject(0)
@@ -983,7 +1001,7 @@ object SteamUtils {
 
                     Timber.i("[DX Fetch] Raw fetchDirect3DMajor for raw=%s", raw)
 
-                    // Extract highest DX major number present.
+                    // Extract highest DX major number present from PCGamingWiki result.
                     val dx = Regex("\\b(9|10|11|12)\\b")
                         .findAll(raw)
                         .map { it.value.toInt() }
@@ -991,7 +1009,92 @@ object SteamUtils {
 
                     Timber.i("[DX Fetch] dx fetchDirect3DMajor is dx=%d", dx)
 
-                    callback(dx)
+                    if (dx == -1) {
+                        // No useful data from PCGamingWiki — try IGDB as a fallback
+                        fetchDirect3DMajorFromIGDB(steamAppId, callback)
+                    } else {
+                        callback(dx)
+                    }
+                }
+            }
+        })
+    }
+
+    /**
+     * Fallback: query IGDB for the game description/keywords and extract DirectX major number.
+     * Notes:
+     * - IGDB requires a Twitch/IGDB client id and a bearer token (app access token). Provide them
+     *   via `PrefManager.igdbClientId` and `PrefManager.igdbBearerToken` (or change to your config).
+     * - IGDB doesn't have an explicit DirectX field, so this searches text fields (summary/storyline/keywords)
+     *   for occurrences of "DirectX"/"DX" numbers and extracts the largest major version found.
+     */
+    private fun fetchDirect3DMajorFromIGDB(steamAppId: Int, callback: (Int) -> Unit) {
+        val appInfo = SteamService.getAppInfoOf(steamAppId)
+        val queryName = appInfo?.name ?: run { callback(-1); return }
+
+        // Read credentials from PrefManager (no hardcoded defaults).
+        val clientId = try { PrefManager.igdbClientId } catch (_: Exception) { "" }
+        val bearer = try { PrefManager.igdbBearerToken } catch (_: Exception) { "" }
+
+        if (clientId.isNullOrEmpty() || bearer.isNullOrEmpty()) {
+            Timber.w("[DX Fetch][IGDB] Missing IGDB credentials; cannot perform fallback")
+            callback(-1)
+            return
+        }
+
+        // Build IGDB plain-text query: search by name, return summary/storyline/keywords
+        val safeName = queryName.replace("\"", "\\\"")
+        val body = "search \"$safeName\"; fields name, summary, storyline, keywords.name; limit 5;"
+
+        val mediaType = "text/plain".toMediaType()
+        val reqBody = body.toRequestBody(mediaType)
+
+        val req = Request.Builder()
+            .url("https://api.igdb.com/v4/games")
+            .post(reqBody)
+            .addHeader("Client-ID", clientId)
+            .addHeader("Authorization", "Bearer $bearer")
+            .build()
+
+        http.newCall(req).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Timber.w(e, "[DX Fetch][IGDB] request failed")
+                callback(-1)
+            }
+
+            override fun onResponse(call: Call, res: Response) {
+                res.use {
+                    val text = it.body?.string() ?: run { callback(-1); return }
+                    try {
+                        val arr = org.json.JSONArray(text)
+                        val combined = StringBuilder()
+                        for (i in 0 until arr.length()) {
+                            val obj = arr.optJSONObject(i) ?: continue
+                            combined.append(obj.optString("name", "")).append(" ")
+                            combined.append(obj.optString("summary", "")).append(" ")
+                            combined.append(obj.optString("storyline", "")).append(" ")
+                            val kws = obj.optJSONArray("keywords")
+                            if (kws != null) {
+                                for (j in 0 until kws.length()) {
+                                    val kobj = kws.optJSONObject(j)
+                                    combined.append(kobj?.optString("name", "")).append(" ")
+                                }
+                            }
+                        }
+
+                        val raw = combined.toString()
+                        // Find DX numbers like 9, 10, 11, 12 in the returned text
+                        val dx = Regex("\\b(9|10|11|12)\\b")
+                            .findAll(raw)
+                            .map { it.value.toInt() }
+                            .maxOrNull() ?: -1
+
+                        Timber.i("[DX Fetch][IGDB] parsed dx=%d for %s", dx, queryName)
+                        callback(dx)
+                    } catch (e: Exception) {
+                        Timber.w(e, "[DX Fetch][IGDB] parse error")
+                        callback(-1)
+                    }
                 }
             }
         })
