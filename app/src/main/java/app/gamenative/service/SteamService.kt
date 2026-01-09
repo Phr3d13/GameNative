@@ -1266,66 +1266,94 @@ class SteamService : Service(), IChallengeUrlChanged {
                         Timber.i("maxDecompress: $maxDecompress")
                         Timber.i("maxFileWrites: $maxFileWrites")
 
-                        // Create DepotDownloader instance
-                        val depotDownloader = DepotDownloader(
-                            instance!!.steamClient!!,
-                            licenses,
-                            debug = false,
-                            androidEmulation = true,
-                            maxDownloads = maxDownloads,
-                            maxDecompress = maxDecompress,
-                            maxFileWrites = maxFileWrites,
-                            parentJob = coroutineContext[Job],
-                            autoStartDownload = false,
-                        )
-
-                        // Create listeners for DLC apps
+                        // Create mapping for all selected depots
                         val depotIdToIndex = selectedDepots.keys.mapIndexed { index, depotId -> depotId to index }.toMap()
-                        val listener = AppDownloadListener(di, depotIdToIndex)
-                        depotDownloader.addListener(listener)
 
                         if (mainAppDepots.isNotEmpty()) {
-                            // Create mapping from depotId to index for progress tracking
+                            // Batch depots to avoid AsyncJobManager timeout (max ~20s for manifest requests)
+                            // With many depots (e.g., 62), concurrent requests can timeout
+                            // Process batches sequentially with separate DepotDownloader instances
+                            val batchSize = 10
                             val mainAppDepotIds = mainAppDepots.keys.sorted()
+                            val depotBatches = mainAppDepotIds.chunked(batchSize)
+                            val installPath = getAppDirPath(appId)
+                            
+                            depotBatches.forEachIndexed { batchIndex, batchDepotIds ->
+                                // Create new DepotDownloader for this batch
+                                val batchDownloader = DepotDownloader(
+                                    instance!!.steamClient!!,
+                                    licenses,
+                                    debug = false,
+                                    androidEmulation = true,
+                                    maxDownloads = maxDownloads,
+                                    maxDecompress = maxDecompress,
+                                    maxFileWrites = maxFileWrites,
+                                    parentJob = coroutineContext[Job],
+                                    autoStartDownload = false,
+                                )
 
-                            // Create AppItem with only mandatory appId
-                            val mainAppItem = AppItem(
-                                appId,
-                                installDirectory = getAppDirPath(appId),
-                                depot = mainAppDepotIds,
-                            )
+                                // Add listener for this batch
+                                val batchListener = AppDownloadListener(di, depotIdToIndex)
+                                batchDownloader.addListener(batchListener)
 
-                            // Add item to downloader
-                            depotDownloader.add(mainAppItem)
+                                // Create AppItem for this batch
+                                val batchAppItem = AppItem(
+                                    appId,
+                                    installDirectory = installPath,
+                                    depot = batchDepotIds,
+                                )
+                                batchDownloader.add(batchAppItem)
+                                
+                                // Process this batch
+                                batchDownloader.finishAdding()
+                                batchDownloader.startDownloading()
+                                
+                                Timber.i("Downloading batch ${batchIndex + 1}/${depotBatches.size} to $installPath")
+                                
+                                // Wait for this batch to complete before starting next
+                                batchDownloader.getCompletion().await()
+                                batchDownloader.close()
+                            }
                         }
 
-                        // Create AppItem for each DLC app
-                        calculatedDlcAppIds.forEach { dlcAppId ->
-                            val dlcDepots = selectedDepots.filter { it.value.dlcAppId == dlcAppId }
-                            val dlcDepotIds = dlcDepots.keys.sorted()
-
-                            val dlcAppItem = AppItem(
-                                dlcAppId,
-                                installDirectory = getAppDirPath(appId),
-                                depot = dlcDepotIds
+                        // Process DLC apps (usually fewer depots, so process normally)
+                        if (calculatedDlcAppIds.isNotEmpty()) {
+                            val dlcDownloader = DepotDownloader(
+                                instance!!.steamClient!!,
+                                licenses,
+                                debug = false,
+                                androidEmulation = true,
+                                maxDownloads = maxDownloads,
+                                maxDecompress = maxDecompress,
+                                maxFileWrites = maxFileWrites,
+                                parentJob = coroutineContext[Job],
+                                autoStartDownload = false,
                             )
 
-                            depotDownloader.add(dlcAppItem)
+                            val dlcListener = AppDownloadListener(di, depotIdToIndex)
+                            dlcDownloader.addListener(dlcListener)
+
+                            calculatedDlcAppIds.forEach { dlcAppId ->
+                                val dlcDepots = selectedDepots.filter { it.value.dlcAppId == dlcAppId }
+                                val dlcDepotIds = dlcDepots.keys.sorted()
+
+                                val dlcAppItem = AppItem(
+                                    dlcAppId,
+                                    installDirectory = getAppDirPath(appId),
+                                    depot = dlcDepotIds
+                                )
+
+                                dlcDownloader.add(dlcAppItem)
+                            }
+
+                            dlcDownloader.finishAdding()
+                            dlcDownloader.startDownloading()
+                            
+                            Timber.i("Downloading DLC to " + defaultAppInstallPath)
+                            
+                            dlcDownloader.getCompletion().await()
+                            dlcDownloader.close()
                         }
-
-                        // Signal that no more items will be added
-                        depotDownloader.finishAdding()
-
-                        // Start Download
-                        depotDownloader.startDownloading()
-
-                        Timber.i("Downloading game to " + defaultAppInstallPath)
-
-                        // Wait for completion
-                        depotDownloader.getCompletion().await()
-
-                        // Close the downloader
-                        depotDownloader.close()
 
                         // Complete app download
                         if (mainAppDepots.isNotEmpty()) {
